@@ -37,7 +37,7 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testGet()
     {
-        $this->curl->get($this->mockUrl . '/test/get');
+        $this->curl->url($this->mockUrl . '/test/get')->get();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -48,7 +48,9 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testPost()
     {
-        $this->curl->post($this->mockUrl . '/test/post', ['data' => 'post']);
+        $this->curl->url($this->mockUrl . '/test/post', ['id' => '1'])
+            ->set(['data' => 'post'])
+            ->post();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -59,7 +61,10 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testPostWithOptions()
     {
-        $this->curl->setOptions([CURLOPT_TIMEOUT => 5])->post($this->mockUrl . '/test/post', ['data' => 'post']);
+        $this->curl->setOptions([CURLOPT_TIMEOUT => 5])
+            ->url($this->mockUrl . '/test/post')
+            ->set(['data' => 'post'])
+            ->post();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -70,7 +75,9 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testPut()
     {
-        $this->curl->put($this->mockUrl . '/test/put', ['data' => 'put']);
+        $this->curl->url($this->mockUrl . '/test/put')
+            ->set(['data' => 'put'])
+            ->put();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -81,7 +88,7 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testDelete()
     {
-        $this->curl->delete($this->mockUrl . '/test/delete');
+        $this->curl->url($this->mockUrl . '/test/delete')->delete();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -92,7 +99,9 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testPatch()
     {
-        $this->curl->patch($this->mockUrl . '/test/patch', ['data' => 'patch']);
+        $this->curl->url($this->mockUrl . '/test/patch')
+            ->set(['data' => 'patch'])
+            ->patch();
         if ($this->curl->error()) {
             var_dump($this->curl->message());
         }
@@ -103,10 +112,10 @@ class CurlTest extends \PHPUnit_Framework_TestCase
 
     public function testRequest()
     {
-        $this->curl->get($this->mockUrl . '/test/get');
+        $this->curl->url($this->mockUrl . '/test/get')->get();
         $response = $this->curl->response();
 
-        $this->curl->request('GET',$this->mockUrl . '/test/get');
+        $this->curl->url($this->mockUrl . '/test/get')->request('GET');
         $response2 = $this->curl->response();
 
         $this->curl->close();

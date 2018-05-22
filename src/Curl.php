@@ -26,6 +26,12 @@ class Curl
     private $options = [];
 
     /**
+     * POST|PUT|PATCH data
+     * @var array
+     */
+    private $data = [];
+
+    /**
      * @var array
      */
     private $defaultOptions = [
@@ -61,108 +67,111 @@ class Curl
     }
 
     /**
-     * make a GET request
+     * set url
      * @param $url
      * @param array $params
-     * @return Curl
+     * @return $this
      */
-    public function get($url, $params = [])
+    public function url($url, $params = [])
     {
-        return $this->request('GET', $url, [], $params);
+        $this->setOption(CURLOPT_URL, $this->buildUrl($url, $params));
+
+        return $this;
     }
 
     /**
-     * make a POST request with optional data
-     * @param $url
-     * @param $data
-     * @param array $params
-     * @return Curl
-     */
-    public function post($url, $data, $params = [])
-    {
-        return $this->request('POST', $url, $data, $params);
-    }
-
-    /**
-     * make a PUT request with optional data
-     * @param $url
+     * set data
+     * POST|PUT|PATCH
      * @param array $data
-     * @param array $params
+     * @return $this
+     */
+    public function set(array $data)
+    {
+        $this->data = $data;
+
+        return $this;
+    }
+
+    /**
+     * make a GET request
      * @return Curl
      */
-    public function put($url, $data = [], $params = [])
+    public function get()
     {
-        return $this->request('PUT', $url, $data, $params);
+        return $this->request('GET');
+    }
+
+    /**
+     * make a POST request
+     * @return Curl
+     */
+    public function post()
+    {
+        return $this->request('POST');
+    }
+
+    /**
+     * make a PUT request
+     * @return Curl
+     */
+    public function put()
+    {
+        return $this->request('PUT');
     }
 
     /**
      * make a DELETE request
-     * @param $url
-     * @param array $params
      * @return Curl
      */
-    public function delete($url, $params = [])
+    public function delete()
     {
-        return $this->request('DELETE', $url, [], $params);
+        return $this->request('DELETE');
     }
 
     /**
-     * make a PATCH request with optional data
-     * @param $url
-     * @param array $data
-     * @param array $params
+     * make a PATCH request
      * @return Curl
      */
-    public function patch($url, $data = [], $params = [])
+    public function patch()
     {
-        return $this->request('PATCH', $url, $data, $params);
+        return $this->request('PATCH');
     }
 
     /**
      * make a HEAD request
-     * @param $url
-     * @param array $params
      * @return Curl
      */
-    public function head($url, $params = [])
+    public function head()
     {
-        return $this->request('HEAD', $url, [], $params);
+        return $this->request('HEAD');
     }
 
     /**
      * make a HTTP request with specified METHOD and optional data
      * @param $method
-     * @param $url
-     * @param array $data
-     * @param array $params
      * @return Curl
      */
-    public function request($method, $url, $data = [], $params = [])
+    public function request($method)
     {
         switch ($method) {
             case 'GET':
-                $this->setUrl($url, $params);
                 $this->setOption(CURLOPT_HTTPGET, true);
                 break;
             case 'POST':
-                $this->setUrl($url, $params);
                 $this->setOption(CURLOPT_POST, true);
-                $this->setOption(CURLOPT_POSTFIELDS, $data);
+                $this->setOption(CURLOPT_POSTFIELDS, $this->data);
                 break;
             case 'HEAD':
-                $this->setUrl($url, $params);
                 $this->setOption(CURLOPT_CUSTOMREQUEST, 'HEAD');
                 $this->setOption(CURLOPT_NOBODY, true);
                 break;
             case 'DELETE':
-                $this->setUrl($url, $params);
                 $this->setOption(CURLOPT_CUSTOMREQUEST, 'DELETE');
                 break;
             default:
                 // PUT and PATCH
-                $this->setUrl($url, $params);
                 $this->setOption(CURLOPT_CUSTOMREQUEST, $method);
-                $this->setOption(CURLOPT_POSTFIELDS, $data);
+                $this->setOption(CURLOPT_POSTFIELDS, $this->data);
         }
 
         return $this->exec();
@@ -170,13 +179,13 @@ class Curl
 
     /**
      * download file
-     * @param $url
      * @param $file
+     * @return $this
      * @throws \Exception
      */
-    public function download($url, $file)
+    public function download($file)
     {
-        $this->get($url);
+        $this->get();
         if ($this->error()) {
             throw new \Exception($this->message(), $this->error());
         }
@@ -186,10 +195,12 @@ class Curl
         }
         fwrite($handle, $this->response());
         fclose($handle);
+
+        return $this;
     }
 
     /**
-     * return error code of the current curl request
+     * return error code
      * @return mixed
      */
     public function error()
@@ -198,7 +209,7 @@ class Curl
     }
 
     /**
-     * return error message of the current curl request
+     * return error message
      * @return mixed
      */
     public function message()
@@ -207,7 +218,7 @@ class Curl
     }
 
     /**
-     * return the result of the current curl request
+     * return the result
      * @return mixed
      */
     public function response()
@@ -263,17 +274,7 @@ class Curl
     }
 
     /**
-     * set url
-     * @param $url
-     * @param array $params
-     */
-    public function setUrl($url, $params = [])
-    {
-        $this->setOption(CURLOPT_URL, $this->buildUrl($url, $params));
-    }
-
-    /**
-     * set headers for the current curl request
+     * set headers
      * @param $headers
      */
     public function setHeaders($headers)
@@ -302,6 +303,7 @@ class Curl
     }
 
     /**
+     * build url
      * @param $url
      * @param array $params
      * @return string
